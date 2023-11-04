@@ -13,10 +13,12 @@ orderid     orderdate               custid      empid
 (1 row(s) affected)
 
 ::::::::::::::::::::MY SOLUTION:::::::::::::::::::::
+
 SELECT orderid, orderdate, custid, empid
 FROM Sales.Orders
 WHERE orderdate =
   (SELECT MIN(O.orderdate) FROM Sales.Orders AS O);
+
 ::::::::::::::::::::MY SOLUTION:::::::::::::::::::::
 
 *******************************************************************
