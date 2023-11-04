@@ -1,0 +1,157 @@
+Using AdventureWorks TSQLv2012, I was provided a "Desired output" and tasked to present a query as my solution.
+
+
+1.  Desired output:
+
+orderid     orderdate               custid      empid
+----------- ----------------------- ----------- -----------
+10248       2006-07-04 00:00:00.000 85          5
+
+(1 row(s) affected)
+
+::::::::::::::::::::MY SOLUTION:::::::::::::::::::::
+SELECT orderid, orderdate, custid, empid
+FROM Sales.Orders
+WHERE orderdate =
+  (SELECT MIN(O.orderdate) FROM Sales.Orders AS O);
+::::::::::::::::::::MY SOLUTION:::::::::::::::::::::
+
+*******************************************************************
+
+
+2.  Desired output:
+
+custid      orderid     orderdate               empid
+----------- ----------- ----------------------- -----------
+20          10258       2006-07-17 00:00:00.000 1
+20          10263       2006-07-23 00:00:00.000 9
+71          10324       2006-10-08 00:00:00.000 9
+20          10351       2006-11-11 00:00:00.000 1
+20          10368       2006-11-29 00:00:00.000 2
+...
+
+20          11008       2008-04-08 00:00:00.000 7
+20          11017       2008-04-13 00:00:00.000 9
+71          11030       2008-04-17 00:00:00.000 7
+71          11031       2008-04-17 00:00:00.000 6
+71          11064       2008-05-01 00:00:00.000 1
+20          11072       2008-05-05 00:00:00.000 4
+
+(61 row(s) affected)
+
+::::::::::::::::::::MY SOLUTION:::::::::::::::::::::
+
+SELECT custid, orderid, orderdate, empid
+FROM Sales.Orders
+WHERE custid IN
+  (SELECT TOP (2) WITH TIES O.custid
+   FROM Sales.Orders AS O
+   GROUP BY O.custid
+   ORDER BY COUNT(*) DESC);
+
+::::::::::::::::::::MY SOLUTION:::::::::::::::::::::
+
+
+*******************************************************************
+
+
+3. Desired output:
+empid       FirstName  lastname
+----------- ---------- --------------------
+1           Sara       Davis
+2           Don        Funk
+3           Judy       Lew
+4           Yael       Peled
+5           Sven       Buck
+6           Paul       Suurs
+7           Russell    King
+8           Maria      Cameron
+9           Zoya       Dolgopyatova
+
+(9 row(s) affected)
+
+::::::::::::::::::::MY SOLUTION:::::::::::::::::::::
+SELECT empid, FirstName, lastname
+FROM HR.Employees
+WHERE empid NOT IN
+  (SELECT O.empid
+   FROM Sales.Orders AS O
+   WHERE O.orderdate >= '20090501');
+::::::::::::::::::::MY SOLUTION:::::::::::::::::::::
+
+*******************************************************************
+4
+
+SELECT DISTINCT country
+FROM Sales.Customers
+WHERE country NOT EXISTS    (<---- YOU MIGHT REMOVE country)
+  (SELECT E.country FROM HR.Employees AS E) 
+
+19 rows
+
+*******************************************************************
+5
+
+SELECT custid, orderid, orderdate, empid
+FROM Sales.Orders AS O1
+WHERE orderdate =
+  (SELECT MIN(O2.orderdate)
+   FROM Sales.Orders AS O2
+   WHERE O2.custid = O1.custid)
+ORDER BY custid;
+
+89 ROWS
+
+*******************************************************************
+6
+
+
+
+SELECT custid, companyname
+FROM Sales.Customers AS C
+WHERE EXISTS
+  (SELECT *
+   FROM Sales.Orders AS O
+   WHERE O.custid = C.custid
+     AND O.orderdate >= '20060101'
+     AND O.orderdate < '20080101')
+  AND NOT EXISTS
+  (SELECT *
+   FROM Sales.Orders AS O
+   WHERE O.custid = C.custid
+     AND O.orderdate >= '20080101'
+     AND O.orderdate < '20090101');
+
+8 ROWS
+
+*******************************************************************
+7
+SELECT custid, companyname
+FROM Sales.Customers AS C
+WHERE EXISTS
+  (SELECT *
+   FROM Sales.Orders AS O
+   WHERE O.custid = C.custid
+     AND EXISTS
+       (SELECT *
+        FROM Sales.OrderDetails AS OD
+        WHERE OD.orderid = O.orderid
+          AND OD.ProductID = 3));
+
+10 rows
+
+*******************************************************************
+8
+
+
+SELECT custid, ordermonth, qty,
+  (SELECT SUM(O2.qty)
+   FROM Sales.CustOrders AS O2
+   WHERE O2.custid = O1.custid
+     AND O2.ordermonth <= O1.ordermonth) AS runqty
+FROM Sales.CustOrders AS O1 
+WHERE custid = 5
+ORDER BY custid, ordermonth;
+
+
+13 rows
